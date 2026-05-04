@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ChatWidget } from "@/components/chat/ChatWidgetLoader";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <ChatWidget />
+        <Toaster position="bottom-left" richColors theme="system" />
       </body>
     </html>
   );
