@@ -27,13 +27,13 @@ export default function FileNode({ id, data }: FileNodeProps) {
         // e.stopPropagation();
         data.toggle?.(id);
       }}
-      className="relative rounded-2xl border border-zinc-700 bg-zinc-900 p-4 w-64 shadow-lg cursor-pointer break-words"
+      className="relative rounded-2xl border border-cx-card-border bg-cx-card p-4 w-64 shadow-lg cursor-pointer wrap-break-word"
     >
       <Handle type="target" position={Position.Top} />
 
       {/* header */}
-      <div className="flex items-start gap-2 text-white font-semibold break-words">
-        
+      <div className="flex items-start gap-2 text-foreground font-semibold wrap-break-word">
+
         {folder ? (
           <Folder size={16} className="text-yellow-400 mt-0.5 shrink-0" />
         ) : (
@@ -42,12 +42,12 @@ export default function FileNode({ id, data }: FileNodeProps) {
 
         {/* name */}
         <div className="flex-1 min-w-0">
-          <div className="break-words whitespace-normal">
+          <div className="wrap-break-word whitespace-normal">
             {data.name}
           </div>
         </div>
 
-        <div className="text-zinc-400 mt-0.5 shrink-0">
+        <div className="text-cx-text-3 mt-0.5 shrink-0">
             {data.open ? (
                 <ChevronDown size={16} />
             ) : (
@@ -58,7 +58,7 @@ export default function FileNode({ id, data }: FileNodeProps) {
 
       {/* summary */}
       {data.open && data.summary && (
-        <div className="text-sm text-zinc-400 mt-2 break-words">
+        <div className="text-sm text-cx-text-3 mt-2 wrap-break-word">
           {data.summary}
         </div>
       )}

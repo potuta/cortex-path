@@ -171,7 +171,7 @@ export default function FileMap({
   // 👇 ADD THESE HERE (before return)
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center bg-[#09090b] font-mono text-sm text-teal-700">
+      <div className="flex h-full items-center justify-center bg-background font-mono text-sm text-cx-accent-muted">
         <span className="animate-pulse">scanning cortex map...</span>
       </div>
     );
@@ -179,11 +179,11 @@ export default function FileMap({
 
   if (isEmpty) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 bg-[#09090b] font-mono text-sm">
-        <span className="text-zinc-600">
+      <div className="flex h-full flex-col items-center justify-center gap-3 bg-background font-mono text-sm">
+        <span className="text-cx-text-3">
           [ no files ingested yet ]
         </span>
-        <span className="text-zinc-700 text-xs">
+        <span className="text-cx-text-3 text-xs">
           select a project folder to populate the map
         </span>
       </div>
@@ -193,7 +193,7 @@ export default function FileMap({
   return (
     <div className="w-full h-screen">
       {selectedNode && (
-        <div className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded border border-teal-900/60 bg-zinc-900/90 px-4 py-1.5 font-mono text-xs text-teal-300 backdrop-blur">
+        <div className="absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded border border-cx-accent-border bg-cx-card/90 px-4 py-1.5 font-mono text-xs text-cx-accent backdrop-blur">
            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {String((selectedNode.data as any).label)}
         </div>
@@ -207,11 +207,11 @@ export default function FileMap({
         fitView
       >
         <Background />
-        <Controls className="border-teal-900/50! bg-zinc-900! shadow-none! [&>button]:border-teal-900/50! [&>button]:bg-zinc-900! [&>button]:text-teal-600!" />
+        <Controls className="border-cx-accent-border! bg-cx-card! shadow-none! [&>button]:border-cx-accent-border! [&>button]:bg-cx-card! [&>button]:text-cx-accent-muted!" />
         <MiniMap
           nodeColor={n => (n.data ? '#ef4444' : '#0F766E')}
           maskColor="rgba(9,9,11,0.7)"
-          className="border-teal-900/40! bg-zinc-900!"
+          className="border-cx-accent-border! bg-cx-card!"
         />
       </ReactFlow>
     </div>
