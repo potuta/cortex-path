@@ -18,7 +18,7 @@ export async function GET() {
       WHERE "userId" = ${session.user.id}
     `;
 
-    const pathToId = new Map(files.map((f: GraphFile) => [f.path, f.id]));
+    const pathToId = new Map<string, string>(files.map((f: GraphFile) => [f.path, f.id]));
 
     const nodes = files.map((f: GraphFile) => ({
       id: f.id,
