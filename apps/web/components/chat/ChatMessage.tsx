@@ -10,14 +10,14 @@ export function ChatMessage({ role, content }: ChatMessageType) {
       <div
         className={`max-w-[85%] rounded px-3 py-2 font-mono text-xs leading-relaxed ${
           isUser
-            ? 'bg-zinc-800 text-zinc-200'
-            : 'border border-zinc-800 bg-zinc-900 text-zinc-300'
+            ? 'bg-cx-card-raised text-foreground'
+            : 'border border-cx-card-border bg-cx-card text-cx-text-2'
         }`}
       >
         {!isUser && (
-          <span className="mb-1 block text-[10px] text-zinc-600">cortex://</span>
+          <span className="mb-1 block text-[10px] text-cx-text-3">cortex://</span>
         )}
-        {content || <span className="animate-pulse text-zinc-600">▊</span>}
+        {content || <span className="animate-pulse text-cx-text-3">▊</span>}
       </div>
     </div>
   );

@@ -50,7 +50,7 @@ function FormField({
 }
 
 const inputCls =
-  'w-full rounded-xl border border-cx-border bg-background px-3 py-2.5 font-mono text-xs text-foreground placeholder:text-cx-muted/50 outline-none transition-colors focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20';
+  'w-full rounded-xl border border-cx-border bg-background px-3 py-2.5 font-mono text-xs text-foreground placeholder:text-cx-muted/50 outline-none transition-colors focus:border-cx-accent focus:ring-1 focus:ring-cx-accent/20';
 
 function SubmitBtn({
   loading,
@@ -104,7 +104,7 @@ function SignInForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div>
-      <p className="mb-2 font-mono text-sm uppercase tracking-widest text-cyan-700">
+      <p className="mb-2 font-mono text-sm uppercase tracking-widest text-cx-accent-muted">
         welcome back
       </p>
       <h2 className="mb-2 font-sans text-5xl font-bold text-foreground">Sign in</h2>
@@ -175,7 +175,7 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div>
-      <p className="mb-2 font-mono text-sm uppercase tracking-widest text-cyan-700">
+      <p className="mb-2 font-mono text-sm uppercase tracking-widest text-cx-accent-muted">
         new here?
       </p>
       <h2 className="mb-2 font-sans text-5xl font-bold text-foreground">Create account</h2>
@@ -264,7 +264,7 @@ function BrandContent({
         />
       </Link>
 
-      <span className="inline-flex items-center gap-2 rounded-full border border-cyan-800/50 bg-cyan-950/30 px-4 py-1.5 font-mono text-xs text-cyan-400">
+      <span className="inline-flex items-center gap-2 rounded-full border border-cx-accent-border bg-cx-accent-bg px-4 py-1.5 font-mono text-xs text-cx-accent">
         <Cpu size={11} /> architectural intelligence
       </span>
 
@@ -296,7 +296,7 @@ function BrandContent({
 
       <button
         onClick={onToggle}
-        className="flex items-center gap-2 rounded-xl border border-cyan-500/40 px-6 py-3 font-mono text-sm text-cyan-300 transition-all hover:border-cyan-500 hover:bg-cyan-500/10"
+        className="flex items-center gap-2 rounded-xl border border-cx-accent-border px-6 py-3 font-mono text-sm text-cx-accent transition-all hover:border-cx-accent hover:bg-cx-accent-bg"
       >
         {mode === 'signin' ? 'Create account' : 'Sign in instead'} <ArrowRight size={13} />
       </button>

@@ -25,8 +25,8 @@ export function ChatWidget() {
         aria-label="Toggle chat"
         className={`flex h-11 w-11 items-center justify-center rounded-full border shadow-lg transition-all ${
           isOpen
-            ? 'border-zinc-500 bg-zinc-800 text-zinc-200'
-            : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+            ? 'border-cx-accent bg-cx-card text-foreground'
+            : 'border-cx-card-border bg-cx-card text-cx-text-2 hover:border-cx-accent-border hover:text-foreground'
         }`}
       >
         <Zap size={15} />

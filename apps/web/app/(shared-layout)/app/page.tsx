@@ -26,7 +26,7 @@ export default function Home() {
   };
 
   const header = (
-    <header className="flex items-center gap-3 border-b border-zinc-800/70 px-6 py-2">
+    <header className="flex items-center gap-3 border-b border-cx-card-border px-6 py-2">
       <Image
         src="/cortexpath_logo.png"
         alt="CortexPath"
@@ -35,11 +35,11 @@ export default function Home() {
         className="h-8 w-auto rounded"
         priority
       />
-      <span className="font-mono text-xs text-zinc-600">/ ingester</span>
+      <span className="font-mono text-xs text-cx-text-3">/ ingester</span>
       <nav className="ml-auto flex items-center gap-4">
         <Link
           href="/map"
-          className="flex items-center gap-1.5 font-mono text-xs text-zinc-500 transition-colors hover:text-teal-400"
+          className="flex items-center gap-1.5 font-mono text-xs text-cx-text-3 transition-colors hover:text-cx-accent"
         >
           <Map size={11} />
           architecture map
@@ -48,7 +48,7 @@ export default function Home() {
         {session && (
           <button
             onClick={() => authClient.signOut({ fetchOptions: { onSuccess: () => { window.location.href = '/'; } } })}
-            className="font-mono text-xs text-zinc-600 transition-colors hover:text-zinc-400"
+            className="font-mono text-xs text-cx-text-3 transition-colors hover:text-cx-text-2"
           >
             sign out
           </button>
@@ -62,7 +62,7 @@ export default function Home() {
       <div className="flex h-screen flex-col bg-background text-foreground">
         {header}
         <div className="flex flex-1 items-center justify-center">
-          <span className="animate-pulse font-mono text-xs text-zinc-600">authenticating...</span>
+          <span className="animate-pulse font-mono text-xs text-cx-text-3">authenticating...</span>
         </div>
       </div>
     );
@@ -73,10 +73,10 @@ export default function Home() {
       <div className="flex h-screen flex-col bg-background text-foreground">
         {header}
         <div className="flex flex-1 flex-col items-center justify-center gap-4">
-          <p className="font-mono text-xs text-zinc-600">sign in to access your codebase</p>
+          <p className="font-mono text-xs text-cx-text-3">sign in to access your codebase</p>
           <Link
             href="/auth"
-            className="flex items-center gap-2 rounded border border-teal-800 bg-teal-950/30 px-4 py-2 font-mono text-xs text-teal-300 transition-all hover:border-teal-500 hover:bg-teal-950/60"
+            className="flex items-center gap-2 rounded border border-cx-accent-border bg-cx-accent-bg px-4 py-2 font-mono text-xs text-cx-accent transition-all hover:border-cx-accent hover:bg-cx-accent-bg"
           >
             <LogIn size={12} />
             sign in
@@ -90,9 +90,9 @@ export default function Home() {
     <div className="flex h-screen flex-col bg-background text-foreground">
       {header}
 
-      <main className="flex flex-1 divide-x divide-zinc-800/70 overflow-hidden">
+      <main className="flex flex-1 divide-x divide-cx-card-border overflow-hidden">
         <section className="flex w-1/2 flex-col overflow-hidden p-6">
-          <p className="mb-4 shrink-0 font-mono text-[10px] uppercase tracking-widest text-teal-700/80">
+          <p className="mb-4 shrink-0 font-mono text-[10px] uppercase tracking-widest text-cx-accent-muted">
             project
           </p>
           <FolderIngestor
@@ -109,7 +109,7 @@ export default function Home() {
         </section>
 
         <section className="flex w-1/2 flex-col overflow-hidden p-6">
-          <p className="mb-4 shrink-0 font-mono text-[10px] uppercase tracking-widest text-teal-700/80">
+          <p className="mb-4 shrink-0 font-mono text-[10px] uppercase tracking-widest text-cx-accent-muted">
             logic summary
           </p>
           <div className="min-h-0 flex-1">

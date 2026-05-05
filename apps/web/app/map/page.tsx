@@ -5,8 +5,8 @@ import { ArchitectureMap } from '@/components/map/MapClientWrapper';
 
 export default function MapPage() {
   return (
-    <div className="flex h-screen flex-col bg-[#09090b] text-zinc-100">
-      <header className="flex items-center gap-3 border-b border-zinc-800/70 px-6 py-2">
+    <div className="flex h-screen flex-col bg-background text-foreground">
+      <header className="flex items-center gap-3 border-b border-cx-card-border px-6 py-2">
         <Image
           src="/cortexpath_logo.png"
           alt="CortexPath"
@@ -15,17 +15,17 @@ export default function MapPage() {
           className="h-8 w-auto rounded"
           priority
         />
-        <span className="font-mono text-xs text-zinc-600">/ architecture-map</span>
+        <span className="font-mono text-xs text-cx-text-3">/ architecture-map</span>
         <nav className="ml-auto flex items-center gap-4">
           <Link
             href="/"
-            className="flex items-center gap-1.5 font-mono text-xs text-zinc-500 transition-colors hover:text-teal-400"
+            className="flex items-center gap-1.5 font-mono text-xs text-cx-text-3 transition-colors hover:text-cx-accent"
           >
             <ArrowLeft size={11} />
             ingester
           </Link>
         </nav>
-        <span className="font-mono text-xs text-zinc-700">
+        <span className="font-mono text-xs text-cx-text-3">
           click a node · blast radius
         </span>
       </header>
