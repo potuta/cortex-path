@@ -5,30 +5,35 @@ import { admin as adminPlugin, username } from "better-auth/plugins";
 import { ac, admin, user } from "./permission";
 
 export const auth = betterAuth({
-    secret: process.env.BETTER_AUTH_SECRET || "BUILD_TIME_SECRET_REPLACE_ME",
-    baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "http://localhost:3000"),
-    trustedOrigins: [
-        "https://cortex-path-web-xi.vercel.app",
-        "https://web-production-5075c.up.railway.app",
-        "http://localhost:3000"
-    ],
-    emailAndPassword: {
-        enabled: true,
-        autoSignIn: false
-    },
-    plugins: [
-        username(),
-        adminPlugin({
-            ac,
-            roles: {
-                admin,
-                user,
-            },
-            defaultRole: "user",
-            adminRoles: ["admin"],
-        }),
-    ],
-    database: prismaAdapter(db, {
-        provider: "postgresql",
+  secret: process.env.BETTER_AUTH_SECRET || "BUILD_TIME_SECRET_REPLACE_ME",
+  baseURL:
+    process.env.BETTER_AUTH_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.NEXT_PUBLIC_VERCEL_URL
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+      : "http://localhost:3000"),
+  trustedOrigins: [
+    "https://cortex-path-web-xi.vercel.app",
+    "https://cortex-path.up.railway.app",
+    "http://localhost:3000",
+  ],
+  emailAndPassword: {
+    enabled: true,
+    autoSignIn: false,
+  },
+  plugins: [
+    username(),
+    adminPlugin({
+      ac,
+      roles: {
+        admin,
+        user,
+      },
+      defaultRole: "user",
+      adminRoles: ["admin"],
     }),
+  ],
+  database: prismaAdapter(db, {
+    provider: "postgresql",
+  }),
 });
