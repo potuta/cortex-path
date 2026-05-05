@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { ArchitectureMap } from "@/components/map/MapClientWrapper";
 import { getSessionFromHeaders } from "@/lib/get-session";
 import { prisma } from "@cortexpath/database";
@@ -31,14 +31,7 @@ export default async function MapPage() {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <header className="flex items-center gap-3 border-b border-cx-card-border px-6 py-2">
-        <Image
-          src="/cortexpath_logo.png"
-          alt="CortexPath"
-          width={130}
-          height={40}
-          className="h-8 w-auto rounded"
-          priority
-        />
+        <BrandLogo href="/app" size="md" />
         <span className="font-mono text-xs text-cx-text-3">
           / architecture-map
         </span>

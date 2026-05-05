@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/BrandLogo';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -254,15 +255,9 @@ function BrandContent({
 }) {
   return (
     <div className="max-w-[400px]">
-      <Link href="/" className="mb-12 block">
-        <Image
-          src="/cortexpath_logo.png"
-          alt="CortexPath"
-          width={160}
-          height={50}
-          className="h-11 w-auto"
-        />
-      </Link>
+      <div className="mb-12">
+        <BrandLogo href="/" size="lg" />
+      </div>
 
       <span className="inline-flex items-center gap-2 rounded-full border border-cx-accent-border bg-cx-accent-bg px-4 py-1.5 font-mono text-xs text-cx-accent">
         <Cpu size={11} /> architectural intelligence

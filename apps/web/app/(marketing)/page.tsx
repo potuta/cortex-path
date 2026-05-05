@@ -10,6 +10,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { BrandLogo } from '@/components/BrandLogo';
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 
@@ -45,7 +46,7 @@ function Nav() {
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-cx-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
         <div className="flex items-center gap-3">
-          <Image src="/cortexpath_logo.png" alt="CortexPath" width={110} height={34} className="h-7 w-auto" />
+          <BrandLogo href="/" size="sm" />
         </div>
         <div className="hidden items-center gap-6 md:flex">
           <a href="#features" className="font-mono text-xs text-cx-muted transition-colors hover:text-cyan-400">features</a>
@@ -503,7 +504,7 @@ function Footer() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
           <div>
-            <Image src="/cortexpath_logo.png" alt="CortexPath" width={100} height={30} className="mb-3 h-6 w-auto" />
+            <BrandLogo size="sm" className="mb-3" />
             <p className="font-mono text-[10px] text-cx-muted/70">
               Architectural intelligence for modern codebases.
             </p>

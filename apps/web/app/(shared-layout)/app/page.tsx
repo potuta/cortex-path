@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Map, LogIn } from 'lucide-react';
+import { BrandLogo } from '@/components/BrandLogo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { FolderIngestor } from '@/components/FolderIngestor';
 import { LogicCard } from '@/components/LogicCard';
@@ -27,14 +28,7 @@ export default function Home() {
 
   const header = (
     <header className="flex items-center gap-3 border-b border-cx-card-border px-6 py-2">
-      <Image
-        src="/cortexpath_logo.png"
-        alt="CortexPath"
-        width={130}
-        height={40}
-        className="h-8 w-auto rounded"
-        priority
-      />
+      <BrandLogo href="/app" size="md" />
       <span className="font-mono text-xs text-cx-text-3">/ ingester</span>
       <nav className="ml-auto flex items-center gap-4">
         <Link
