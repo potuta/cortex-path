@@ -13,9 +13,55 @@ import { useInterpret } from '@/hooks/useInterpret';
 import { authClient } from '@/lib/auth-client';
 import type { FileResult } from '@/hooks/useIngestor';
 
+function DashboardSkeleton({ header }: { header: React.ReactNode }) {
+  return (
+    <div className="flex h-screen flex-col bg-background text-foreground">
+      {header}
+      <main className="flex flex-1 divide-x divide-cx-card-border overflow-hidden">
+        {/* Left panel skeleton */}
+        <section className="flex w-1/2 flex-col overflow-hidden p-6">
+          <div className="mb-4 h-2.5 w-14 animate-pulse rounded bg-cx-card-raised" />
+          <div className="flex flex-1 flex-col gap-3">
+            {/* Tree rows */}
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2"
+                style={{ paddingLeft: (i % 3) * 16 }}
+              >
+                <div className="h-2 w-2 animate-pulse rounded-full bg-cx-card-raised" />
+                <div
+                  className="h-2.5 animate-pulse rounded bg-cx-card-raised"
+                  style={{ width: `${40 + (i % 5) * 12}%`, animationDelay: `${i * 60}ms` }}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Right panel skeleton */}
+        <section className="flex w-1/2 flex-col overflow-hidden p-6">
+          <div className="mb-4 h-2.5 w-20 animate-pulse rounded bg-cx-card-raised" />
+          <div className="flex flex-1 flex-col gap-4">
+            {/* Section blocks */}
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="space-y-2" style={{ animationDelay: `${i * 80}ms` }}>
+                <div className="h-2.5 w-32 animate-pulse rounded bg-cx-card-raised" />
+                <div className="h-2 w-full animate-pulse rounded bg-cx-card-raised opacity-60" />
+                <div className="h-2 w-4/5 animate-pulse rounded bg-cx-card-raised opacity-60" />
+                <div className="h-2 w-3/5 animate-pulse rounded bg-cx-card-raised opacity-40" />
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
 export default function Home() {
   const { data: session, isPending: sessionLoading } = authClient.useSession();
-  const { status, progress, results, currentFile, folderName, selectFolder, reset, getContent } = useIngestor();
+  const { status, initializing, progress, results, currentFile, folderName, selectFolder, reset, getContent } = useIngestor();
   const { summary, isLoading: isInterpreting, interpret } = useInterpret();
 
   const [selectedFile, setSelectedFile] = useState<FileResult | null>(null);
@@ -78,6 +124,10 @@ export default function Home() {
         </div>
       </div>
     );
+  }
+
+  if (initializing) {
+    return <DashboardSkeleton header={header} />;
   }
 
   return (

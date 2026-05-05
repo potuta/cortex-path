@@ -98,6 +98,7 @@ const LS_FOLDER_KEY = 'cortex:folderName';
 
 export function useIngestor() {
   const [status, setStatus] = useState<IngestStatus>('idle');
+  const [initializing, setInitializing] = useState(true);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [results, setResults] = useState<FileResult[]>([]);
   const [currentFile, setCurrentFile] = useState('');
@@ -126,7 +127,8 @@ export function useIngestor() {
           });
         }
       })
-      .catch(() => {/* silently ignore — user can still ingest manually */});
+      .catch(() => {/* silently ignore — user can still ingest manually */})
+      .finally(() => setInitializing(false));
   }, []);
 
   const selectFolder = useCallback(async () => {
@@ -209,5 +211,5 @@ export function useIngestor() {
     try { localStorage.removeItem(LS_FOLDER_KEY); } catch { /* ignore */ }
   }, []);
 
-  return { status, progress, results, currentFile, folderName, selectFolder, reset, getContent };
+  return { status, initializing, progress, results, currentFile, folderName, selectFolder, reset, getContent };
 }
