@@ -31,8 +31,8 @@ export async function POST(req: Request) {
     `;
 
     const context = files
-      .filter(f => f.summary)
-      .map(f => `[${f.name}] ${f.summary}`)
+      .filter((f: { name: string; summary: string | null }) => f.summary)
+      .map((f: { name: string; summary: string | null }) => `[${f.name}] ${f.summary}`)
       .join('\n');
 
     const result = streamText({
