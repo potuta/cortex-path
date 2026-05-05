@@ -102,20 +102,17 @@ export function useIngestor() {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [results, setResults] = useState<FileResult[]>([]);
   const [currentFile, setCurrentFile] = useState('');
-  const [folderName, setFolderName] = useState('');
+  const [folderName, setFolderName] = useState(() => {
+    try { return localStorage.getItem(LS_FOLDER_KEY) ?? ''; } catch { return ''; }
+  });
 
   // Session-only cache: path → raw file content for on-click interpret
   const contentCache = useRef<Map<string, string>>(new Map());
 
   const getContent = useCallback((path: string) => contentCache.current.get(path) ?? '', []);
 
-  // Load previously ingested files + folder name from DB / localStorage on mount
+  // Load previously ingested files from DB on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_FOLDER_KEY);
-      if (saved) setFolderName(saved);
-    } catch { /* ignore */ }
-
     fetch('/api/files')
       .then((r) => r.json())
       .then((data: { files?: FileResult[] }) => {
