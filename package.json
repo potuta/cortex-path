@@ -10,7 +10,10 @@
     "dev": "npm run dev --workspace=apps/web",
     "build": "npm run build --workspace=apps/web",
     "db:generate": "npm run generate --workspace=packages/database",
-    "db:push": "npm run db:push --workspace=packages/database"
+    "db:push": "npm run db:push --workspace=packages/database",
+    "postinstall": "npm run generate --workspace=packages/database",
+    "prisma:generate": "cd packages/database && npx prisma generate"
+    
   },
   "optionalDependencies": {
     "lightningcss-linux-x64-gnu": "1.32.0",
