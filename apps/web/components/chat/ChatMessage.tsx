@@ -93,6 +93,10 @@ const mdComponents: React.ComponentProps<typeof ReactMarkdown>['components'] = {
   ),
 };
 
+function stripThink(text: string): string {
+  return (text || '').replace(/<think>[\s\S]*?(?:<\/think>|$)/g, "");
+}
+
 export function ChatMessage({ role, content }: ChatMessageType) {
   const isUser = role === 'user';
   const isEmpty = !content;
@@ -120,7 +124,7 @@ export function ChatMessage({ role, content }: ChatMessageType) {
           <TypingDots />
         ) : (
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-            {content}
+            {stripThink(content)}
           </ReactMarkdown>
         )}
       </div>

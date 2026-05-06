@@ -43,10 +43,15 @@ const ENHANCEMENT_ICONS: Record<string, LucideIcon> = {
 
 const LS_PROMPT_PREFIX = 'cortex:prompt:';
 
+function stripThink(text: string): string {
+  return (text || '').replace(/<think>[\s\S]*?(?:<\/think>|$)/g, "").trim();
+}
+
 function extractEnhancements(markdown: string): Enhancement[] {
+  const cleanMarkdown = stripThink(markdown);
   return ENHANCEMENT_PATTERNS.flatMap(({ id, label, key }) => {
     const regex = new RegExp(`\\*\\*${key}\\*\\*:?\\s*(.+?)(?=\\n|$)`, 'i');
-    const match = markdown.match(regex);
+    const match = cleanMarkdown.match(regex);
     return match ? [{ id, label, text: match[1].replace(/\*/g, '').trim() }] : [];
   });
 }
@@ -374,7 +379,7 @@ export function LogicCard({
     );
   }
 
-  const displayContent = summary + (isLoading ? ' ▊' : '');
+  const displayContent = stripThink(summary) + (isLoading ? ' ▊' : '');
 
   return (
     <>
