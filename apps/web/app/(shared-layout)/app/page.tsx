@@ -102,7 +102,7 @@ export default function Home() {
       <div className="flex h-screen flex-col bg-background text-foreground">
         {header}
         <div className="flex flex-1 items-center justify-center">
-          <span className="animate-pulse font-mono text-xs text-cx-text-3">authenticating...</span>
+          <span className="animate-pulse font-mono text-xs text-cx-text-3">authenticating....</span>
         </div>
       </div>
     );
