@@ -1,6 +1,6 @@
-import { cortexModel } from "@/lib/ai/groq";
+import { streamWithFallback } from "@/lib/ai/groq";
 import { prisma } from "@cortexpath/database";
-import { streamText } from "ai";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { getSessionFromRequest } from "@/lib/get-session";
 
 export const runtime = "nodejs";
@@ -57,6 +57,14 @@ export async function POST(req: Request) {
     }
     const userId = session.user.id;
 
+    const rl = checkRateLimit(userId, 'interpret', 30);
+    if (!rl.allowed) {
+      return new Response(
+        JSON.stringify({ error: 'Daily interpret limit reached. Try again tomorrow.' }),
+        { status: 429, headers: { 'Content-Type': 'application/json', 'X-RateLimit-Reset': String(rl.resetAt) } }
+      );
+    }
+
     const { fileName, filePath, codeSnippet } = await req.json() as {
       fileName: string;
       filePath: string;
@@ -104,8 +112,7 @@ export async function POST(req: Request) {
 
     const prompt = `${contextBlock}\n\n${codeBlock}`;
 
-    const result = streamText({
-      model: cortexModel,
+    const result = await streamWithFallback({
       system: SYSTEM_PROMPT,
       prompt,
     });

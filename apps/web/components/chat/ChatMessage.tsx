@@ -1,23 +1,32 @@
 'use client';
 
-import type { ChatMessage as ChatMessageType } from '@/hooks/useAIChat';
+import { CortexIcon } from './CortexIcon';
+import type { ChatMessage as ChatMessageType } from '@/hooks/useChatSessions';
 
 export function ChatMessage({ role, content }: ChatMessageType) {
   const isUser = role === 'user';
 
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
+        <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-foreground px-3.5 py-2.5 text-xs leading-relaxed text-background">
+          {content}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div
-        className={`max-w-[85%] rounded px-3 py-2 font-mono text-xs leading-relaxed ${
-          isUser
-            ? 'bg-cx-card-raised text-foreground'
-            : 'border border-cx-card-border bg-cx-card text-cx-text-2'
-        }`}
-      >
-        {!isUser && (
-          <span className="mb-1 block text-[10px] text-cx-text-3">cortex://</span>
+    <div className="flex items-start gap-2.5">
+      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cx-accent-bg text-cx-accent ring-1 ring-cx-accent-border">
+        <CortexIcon size={11} />
+      </div>
+      <div className="min-w-0 flex-1 text-xs leading-relaxed text-cx-text-2">
+        {content ? (
+          <span className="whitespace-pre-wrap wrap-break-word">{content}</span>
+        ) : (
+          <span className="animate-pulse text-cx-accent">▊</span>
         )}
-        {content || <span className="animate-pulse text-cx-text-3">▊</span>}
       </div>
     </div>
   );

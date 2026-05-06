@@ -1,7 +1,7 @@
 import { prisma } from '@cortexpath/database';
-import { cortexModel } from '@/lib/ai/groq';
+import { groqCompact, groqCompound, streamWithFallback } from '@/lib/ai/groq';
 import { generateEmbedding } from '@/lib/ai/embeddings';
-import { streamText } from 'ai';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { getSessionFromRequest } from '@/lib/get-session';
 
 export const runtime = 'nodejs';
@@ -12,6 +12,14 @@ export async function POST(req: Request) {
     const session = await getSessionFromRequest(req);
     if (!session) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    const rl = checkRateLimit(session.user.id, 'chat', 100);
+    if (!rl.allowed) {
+      return new Response(
+        JSON.stringify({ error: 'Daily chat limit reached. Try again tomorrow.' }),
+        { status: 429, headers: { 'Content-Type': 'application/json', 'X-RateLimit-Reset': String(rl.resetAt) } }
+      );
     }
 
     const { message } = await req.json();
@@ -36,13 +44,15 @@ export async function POST(req: Request) {
       .map((f: { name: string; summary: string | null }) => `[${f.name}] ${f.summary}`)
       .join('\n');
 
-    const result = streamText({
-      model: cortexModel,
-      system: context
-        ? `You are CortexPath's AI assistant. Answer questions about the developer's codebase concisely. Reference file names in square brackets when relevant.\n\nCODEBASE CONTEXT:\n${context}`
-        : `You are CortexPath's AI assistant. No files have been ingested yet. Let the user know they should select a project folder to build up the codebase context first.`,
-      prompt: message,
-    });
+    const result = await streamWithFallback(
+      {
+        system: context
+          ? `You are CortexPath's AI assistant. Answer questions about the developer's codebase concisely. Reference file names in square brackets when relevant.\n\nCODEBASE CONTEXT:\n${context}`
+          : `You are CortexPath's AI assistant. No files have been ingested yet. Let the user know they should select a project folder to build up the codebase context first.`,
+        prompt: message,
+      },
+      [groqCompact, groqCompound]
+    );
 
     return result.toTextStreamResponse();
   } catch (error: unknown) {

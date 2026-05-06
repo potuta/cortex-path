@@ -1,8 +1,8 @@
 import { initCortexParser } from "@/lib/ast/crawler";
-import { cortexModel } from "@/lib/ai/groq";
+import { generateWithFallback } from "@/lib/ai/groq";
 import { generateEmbedding } from "@/lib/ai/embeddings";
 import { prisma } from "@cortexpath/database";
-import { generateText } from "ai";
+import { checkRateLimit } from "@/lib/rate-limit";
 import path from "path";
 import { getSessionFromRequest } from "@/lib/get-session";
 
@@ -44,8 +44,7 @@ async function batchSummarize(
 
   try {
     const { text } = await Promise.race([
-      generateText({
-        model: cortexModel,
+      generateWithFallback({
         system:
           "You are a code analyzer. Always respond with valid JSON only — no markdown, no explanation.",
         prompt: `Summarize each file in one plain-English sentence (max 20 words).
@@ -74,6 +73,14 @@ export async function POST(req: Request) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
     const userId = session.user.id;
+
+    const rl = checkRateLimit(userId, 'ingest', 20);
+    if (!rl.allowed) {
+      return Response.json(
+        { error: 'Daily ingest limit reached. Try again tomorrow.' },
+        { status: 429, headers: { 'X-RateLimit-Reset': String(rl.resetAt) } }
+      );
+    }
 
     const { files } = (await req.json()) as { files: IngestFile[] };
     if (!Array.isArray(files) || files.length === 0) {
