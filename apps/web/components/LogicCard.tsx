@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Copy, Check, Cpu, Clipboard, Wand2, Bookmark, Building2, Brain, Shield, Zap, Layers, Target, Leaf, GraduationCap, X, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Copy, Check, Cpu, Clipboard, Wand2, Bookmark, Building2, Brain, Shield, Zap, Layers, Target, Leaf, GraduationCap, X, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { buildGoldenPrompt } from '@/lib/context/golden-prompt';
 
 import { SavedPromptsModal } from '@/components/SavedPromptsModal';
+
+import { MODEL_MAP, type ModelName } from '@/lib/ai/groq';
 
 type LogicCardProps = {
   fileName: string;
@@ -16,6 +18,9 @@ type LogicCardProps = {
   code?: string;
   imports?: string[];
   exports?: string[];
+  selectedModel?: ModelName;
+  onModelChange?: (model: ModelName) => void;
+  rateLimitInfo?: { status: 'safe' | 'verge' | 'denied', message?: string } | null;
 };
 
 type Enhancement = { id: string; label: string; text: string };
@@ -317,12 +322,17 @@ export function LogicCard({
   code = '',
   imports = [],
   exports = [],
+  selectedModel = 'qwen/qwen3-32b',
+  onModelChange,
+  rateLimitInfo,
 }: LogicCardProps) {
   const [copied, setCopied] = useState(false);
   const [copiedCtx, setCopiedCtx] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const [showEnhance, setShowEnhance] = useState(false);
   const [analyzeMsg, setAnalyzeMsg] = useState(0);
+
+  const modelOptions = Object.keys(MODEL_MAP) as ModelName[];
 
   useEffect(() => {
     if (!isLoading) return;
@@ -370,9 +380,23 @@ export function LogicCard({
     <>
       <div className="flex h-full flex-col gap-3">
         <div className="flex items-center justify-between border-b border-cx-card-border pb-3">
-          <span className="truncate font-mono text-xs text-cx-text-3">
-            {fileName || 'untitled'}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="truncate font-mono text-xs text-cx-text-3 max-w-[120px]">
+              {fileName || 'untitled'}
+            </span>
+            <div className="h-4 w-px bg-cx-card-border" />
+            <select
+              value={selectedModel}
+              onChange={(e) => onModelChange?.(e.target.value as ModelName)}
+              className="bg-transparent font-mono text-[10px] text-cx-accent-muted outline-none hover:text-cx-accent cursor-pointer"
+            >
+              {modelOptions.map(m => (
+                <option key={m} value={m} className="bg-cx-card text-foreground">
+                  {m.split('/').pop()}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="flex shrink-0 items-center gap-3">
             <button
               onClick={() => setShowSaved(true)}
@@ -407,6 +431,21 @@ export function LogicCard({
             </button>
           </div>
         </div>
+
+        {rateLimitInfo && rateLimitInfo.status !== 'safe' && (
+          <div className={`flex items-center gap-2 rounded border px-3 py-2 font-mono text-[10px] ${
+            rateLimitInfo.status === 'denied' 
+              ? 'border-red-500/50 bg-red-500/10 text-red-400' 
+              : 'border-yellow-500/50 bg-yellow-500/10 text-yellow-400'
+          }`}>
+            <AlertCircle size={12} />
+            <span>
+              {rateLimitInfo.status === 'denied' 
+                ? rateLimitInfo.message || 'Daily limit reached. Request denied.' 
+                : 'Warning: Approaching daily rate limit for this model.'}
+            </span>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto pb-2">
           {/* File metadata header */}

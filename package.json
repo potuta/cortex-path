@@ -26,6 +26,8 @@
     "sharp-linux-x64": "0.34.5"
   },
   "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "sharp": "^0.34.5"
   },
   "overrides": {

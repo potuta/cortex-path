@@ -6,15 +6,26 @@ export const groq = createGroq({
 });
 
 // Named model instances
-export const groqLarge   = groq("llama-3.3-70b-versatile"); // 100K TPD  — interpret/ingest (quality)
-export const groqFast    = groq("llama-3.1-8b-instant");    // 500K TPD  — final fallback (high quota)
-export const groqQwen    = groq("qwen/qwen3-32b");          // 500K TPD, 60 RPM — primary chat
-export const groqGptOss  = groq("openai/gpt-oss-20b");      // 200K TPD  — chat fallback 1
+export const groqLarge   = groq("llama-3.3-70b-versatile"); // interpret/ingest
+export const groqFast    = groq("llama-3.1-8b-instant");    // fallback
+export const groqQwen    = groq("qwen/qwen3-32b");          // primary
+export const groqGptOss  = groq("openai/gpt-oss-20b");      // chat fallback
 
-// NOTE: compound-beta / compound-beta-mini internally call llama-3.3-70b-versatile
-// and drain the same 100K TPD quota — do NOT use for chat.
-export const groqCompact  = groq("compound-beta-mini"); // reserved — not active
-export const groqCompound = groq("compound-beta");       // reserved — not active
+export const MODEL_LIMITS = {
+  "qwen/qwen3-32b": { rpm: 60, rpd: 1000, tpm: 6000, tpd: 500000 },
+  "llama-3.3-70b-versatile": { rpm: 30, rpd: 1000, tpm: 12000, tpd: 100000 },
+  "llama-3.1-8b-instant": { rpm: 30, rpd: 14400, tpm: 6000, tpd: 500000 },
+  "openai/gpt-oss-20b": { rpm: 30, rpd: 1000, tpm: 8000, tpd: 200000 },
+} as const;
+
+export type ModelName = keyof typeof MODEL_LIMITS;
+
+export const MODEL_MAP = {
+  "qwen/qwen3-32b": groqQwen,
+  "llama-3.3-70b-versatile": groqLarge,
+  "llama-3.1-8b-instant": groqFast,
+  "openai/gpt-oss-20b": groqGptOss,
+} as const;
 
 // Keep alias so any remaining imports stay working
 export const cortexModel = groqLarge;

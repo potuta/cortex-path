@@ -104,3 +104,15 @@ model SavedPrompt {
 
   @@index([userId])
 }
+
+model Usage {
+  id           String   @id @default(cuid())
+  userId       String
+  model        String
+  requests     Int      @default(0)
+  tokens       Int      @default(0)
+  date         DateTime @default(now())
+
+  @@unique([userId, model, date])
+  @@index([userId])
+}

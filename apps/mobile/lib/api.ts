@@ -1,7 +1,6 @@
 import { Platform } from "react-native";
 
-const defaultApiBaseUrl =
-  Platform.OS === "android" ? "http://10.0.2.2:3000" : "http://localhost:3000";
+const defaultApiBaseUrl = "https://cortex-path.up.railway.app";
 
 const apiBaseUrl = (
   process.env.EXPO_PUBLIC_API_URL?.trim() || defaultApiBaseUrl
@@ -76,15 +75,23 @@ function getErrorMessage(body: unknown, fallback: string) {
 }
 
 async function postAuth(path: string, body: object) {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${apiBaseUrl}${path}`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    console.error(`[API] Network Error for ${apiBaseUrl}${path}:`, err);
+    throw err;
+  }
+
+  console.log(`[API] Response from ${path}:`, response.status);
 
   const responseBody = await readBody(response);
 

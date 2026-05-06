@@ -1,7 +1,8 @@
-import { streamWithFallback } from "@/lib/ai/groq";
+import { MODEL_MAP, type ModelName } from "@/lib/ai/groq";
+import { streamText } from "ai";
 import { prisma } from "@cortexpath/database";
-import { checkRateLimit } from "@/lib/rate-limit";
 import { getSessionFromRequest } from "@/lib/get-session";
+import { recordUsage, checkUsageStatus } from "@/lib/usage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,66 +50,45 @@ Use a terminal-chic tone: professional, precise, and insightful. No filler. Teac
 export async function POST(req: Request) {
   try {
     const session = await getSessionFromRequest(req);
-    if (!session) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    if (!session) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     const userId = session.user.id;
 
-    // Per-minute guard — max 2 logic summaries/minute/user
-    const rlMin = checkRateLimit(userId, 'interpret:min', 2, 60_000);
-    if (!rlMin.allowed) {
-      return new Response(
-        JSON.stringify({ error: 'Please wait before generating another summary.' }),
-        { status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': '60' } }
-      );
-    }
-
-    // Per-day guard
-    const rl = checkRateLimit(userId, 'interpret', 30);
-    if (!rl.allowed) {
-      return new Response(
-        JSON.stringify({ error: 'Daily interpret limit reached. Try again tomorrow.' }),
-        { status: 429, headers: { 'Content-Type': 'application/json', 'X-RateLimit-Reset': String(rl.resetAt) } }
-      );
-    }
-
-    const { fileName, filePath, codeSnippet } = await req.json() as {
+    const { fileName, filePath, codeSnippet, model = "qwen/qwen3-32b" } = await req.json() as {
       fileName: string;
       filePath: string;
       codeSnippet: string;
+      model?: ModelName;
     };
 
-    // Pull real structural metadata from DB (scoped to this user)
+    // 1. Check DB-backed rate limits
+    const usageCheck = await checkUsageStatus(userId, model);
+    if (usageCheck.status === 'denied') {
+      return new Response(JSON.stringify({ error: `Daily limit reached for ${model}.` }), { status: 429 });
+    }
+
+    // 2. Fetch metadata (omitted for brevity in this replace call, but should be preserved)
+    // ... (existing metadata lookup logic) ...
     let imports: string[] = [];
     let exports: string[] = [];
     let impactedBy: string[] = [];
-
     if (filePath) {
-      try {
-        const [fileRows, rippleRows] = await Promise.all([
-          prisma.$queryRaw<{ imports: string[]; exports: string[] }[]>`
-            SELECT imports, exports FROM "File"
-            WHERE path = ${filePath} AND "userId" = ${userId} LIMIT 1
-          `,
-          prisma.$queryRaw<{ path: string }[]>`
-            SELECT path FROM "File"
-            WHERE ${filePath} = ANY(imports) AND "userId" = ${userId} LIMIT 30
-          `,
-        ]);
-        if (fileRows[0]) {
-          imports = fileRows[0].imports ?? [];
-          exports = fileRows[0].exports ?? [];
-        }
-        impactedBy = rippleRows.map((r: { path: string }) => r.path);
-      } catch {
-        // DB lookup failed — proceed without metadata
+      const [fileRows, rippleRows] = await Promise.all([
+        prisma.$queryRaw<{ imports: string[]; exports: string[] }[]>`
+          SELECT imports, exports FROM "File"
+          WHERE path = ${filePath} AND "userId" = ${userId} LIMIT 1
+        `,
+        prisma.$queryRaw<{ path: string }[]>`
+          SELECT path FROM "File"
+          WHERE ${filePath} = ANY(imports) AND "userId" = ${userId} LIMIT 30
+        `,
+      ]);
+      if (fileRows[0]) {
+        imports = fileRows[0].imports ?? [];
+        exports = fileRows[0].exports ?? [];
       }
+      impactedBy = rippleRows.map((r: { path: string }) => r.path);
     }
 
-    // Build a rich structural context block
     const contextBlock = [
       `File path : ${filePath || fileName}`,
       imports.length  ? `Imports   : ${imports.join(', ')}` : null,
@@ -116,25 +96,26 @@ export async function POST(req: Request) {
       impactedBy.length ? `Depended on by: ${impactedBy.join(', ')}` : 'Depended on by: (no other file imports this one)',
     ].filter(Boolean).join('\n');
 
-    const codeBlock = codeSnippet?.trim()
-      ? `\`\`\`\n${codeSnippet}\n\`\`\``
-      : '(source code not available — analyse from imports/exports/path metadata only)';
+    const prompt = `${contextBlock}\n\n\`\`\`\n${codeSnippet}\n\`\`\``;
 
-    const prompt = `${contextBlock}\n\n${codeBlock}`;
-
-    const result = await streamWithFallback({
+    // 3. Stream with selected model
+    const aiModel = MODEL_MAP[model] || MODEL_MAP["qwen/qwen3-32b"];
+    const result = streamText({
+      model: aiModel,
       system: SYSTEM_PROMPT,
       prompt,
+      onFinish: async (event) => {
+        await recordUsage(userId, model, event.usage.totalTokens);
+      }
     });
 
-    return result.toTextStreamResponse();
+    return result.toTextStreamResponse({
+      headers: {
+        'X-Usage-Status': usageCheck.status,
+      }
+    });
   } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "An unknown error occurred";
-
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error("[API Interpret] Error:", error);
+    return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
   }
 }
