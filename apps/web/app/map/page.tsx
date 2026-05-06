@@ -5,7 +5,6 @@ import { ArchitectureMap } from "@/components/map/MapClientWrapper";
 import { getSessionFromHeaders } from "@/lib/get-session";
 import { prisma } from "@cortexpath/database";
 import FileMap, { FileRecord } from "@/components/map/file-map";
-import { notification } from "@/components/ui/notification";
 import { redirect } from "next/navigation";
 
 export default async function MapPage() {
