@@ -1,7 +1,6 @@
 import { Platform } from "react-native";
 
-const defaultApiBaseUrl =
-  Platform.OS === "android" ? "http://10.0.2.2:3000" : "http://localhost:3000";
+const defaultApiBaseUrl = "https://cortex-path.up.railway.app";
 
 const apiBaseUrl = (
   process.env.EXPO_PUBLIC_API_URL?.trim() || defaultApiBaseUrl
@@ -76,15 +75,23 @@ function getErrorMessage(body: unknown, fallback: string) {
 }
 
 async function postAuth(path: string, body: object) {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${apiBaseUrl}${path}`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    console.error(`[API] Network Error for ${apiBaseUrl}${path}:`, err);
+    throw err;
+  }
+
+  console.log(`[API] Response from ${path}:`, response.status);
 
   const responseBody = await readBody(response);
 
@@ -113,6 +120,63 @@ export function signUpWithEmail(
 
 export function signOut() {
   return postAuth("/api/sign-out", {});
+}
+
+/** Strips <think>...</think> reasoning blocks emitted by qwen models. */
+function stripThinkBlocks(text: string): string {
+  let out = text.replace(/<think>[\s\S]*?<\/think>/g, "");
+  const openIdx = out.indexOf("<think>");
+  if (openIdx !== -1) out = out.slice(0, openIdx);
+  return out.trimStart();
+}
+
+/**
+ * Streams a chat message to /api/chat, calling onChunk with each
+ * progressive text update (think-blocks already stripped).
+ */
+export async function streamChatMessage(
+  message: string,
+  onChunk: (text: string) => void,
+): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/chat`, {
+    method: "POST",
+    headers: {
+      Accept: "text/plain",
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ message }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401)
+      throw new ApiError(401, "Please sign in again.");
+    if (response.status === 429) {
+      const retryAfter = response.headers.get("Retry-After");
+      throw new ApiError(
+        429,
+        retryAfter
+          ? "Sending too fast — please wait a moment."
+          : "Daily limit reached. Try again tomorrow.",
+      );
+    }
+    throw new ApiError(response.status, "Something went wrong. Please try again.");
+  }
+
+  if (!response.body) {
+    throw new ApiError(500, "No response stream received.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let accumulated = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    accumulated += decoder.decode(value, { stream: true });
+    onChunk(stripThinkBlocks(accumulated));
+  }
 }
 
 export { apiBaseUrl };

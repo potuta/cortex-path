@@ -7,6 +7,7 @@ import {
   Loader2, Check, Zap,
 } from 'lucide-react';
 import type { IngestStatus, FileResult } from '@/hooks/useIngestor';
+import { ConfirmationModal, WarningModal } from './ProjectModals';
 
 // ─── Tree builder ────────────────────────────────────────────────────────────
 
@@ -285,12 +286,14 @@ export function FolderIngestor({
   selectedPath, onSelect, onReset, onFileSelect,
 }: FolderIngestorProps) {
   const tree = useMemo(() => buildTree(results), [results]);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
 
   if (status === 'idle') {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4">
         <button
-          onClick={onSelect}
+          onClick={() => setShowConfirm(true)}
           className="flex items-center gap-2 rounded border border-cx-accent-border bg-cx-accent-bg px-6 py-3 font-mono text-sm text-cx-accent transition-all hover:border-cx-accent hover:shadow-[0_0_16px_rgba(45,212,191,0.15)]"
         >
           <FolderOpen size={15} />
@@ -299,6 +302,13 @@ export function FolderIngestor({
         <span className="font-mono text-xs text-cx-text-3">
           reads files locally · syncs vectors to cloud
         </span>
+
+        <ConfirmationModal
+          isOpen={showConfirm}
+          onClose={() => setShowConfirm(false)}
+          onConfirm={onSelect}
+          siteName="cortex-path.up.railway.app"
+        />
       </div>
     );
   }
@@ -319,13 +329,19 @@ export function FolderIngestor({
             </span>
           </div>
           <button
-            onClick={onReset}
+            onClick={() => setShowWarning(true)}
             className="flex items-center gap-1.5 font-mono text-[10px] text-cx-text-3 transition-colors hover:text-cx-accent"
           >
             <RefreshCw size={10} />
             new
           </button>
         </div>
+
+        <WarningModal
+          isOpen={showWarning}
+          onClose={() => setShowWarning(false)}
+          onConfirm={onReset}
+        />
 
         <div className="mb-2 flex shrink-0 items-center gap-1.5 px-0.5 font-mono text-[10px] text-cx-accent-muted">
           <CheckCircle size={10} />

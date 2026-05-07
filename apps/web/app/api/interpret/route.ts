@@ -1,7 +1,14 @@
-import { cortexModel } from "@/lib/ai/groq";
+import {
+  MODEL_MAP,
+  type ModelName,
+  streamWithFallback,
+  groqQwen,
+  groqLarge,
+  groqFast,
+} from "@/lib/ai/groq";
 import { prisma } from "@cortexpath/database";
-import { streamText } from "ai";
 import { getSessionFromRequest } from "@/lib/get-session";
+import { recordUsage, checkUsageStatus } from "@/lib/usage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,75 +56,103 @@ Use a terminal-chic tone: professional, precise, and insightful. No filler. Teac
 export async function POST(req: Request) {
   try {
     const session = await getSessionFromRequest(req);
-    if (!session) {
+    if (!session)
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { "Content-Type": "application/json" },
       });
-    }
     const userId = session.user.id;
 
-    const { fileName, filePath, codeSnippet } = await req.json() as {
+    const {
+      fileName,
+      filePath,
+      codeSnippet,
+      model = "qwen/qwen3-32b",
+    } = (await req.json()) as {
       fileName: string;
       filePath: string;
       codeSnippet: string;
+      model?: ModelName;
     };
 
-    // Pull real structural metadata from DB (scoped to this user)
+    // 1. Check DB-backed rate limits for the requested model
+    const usageCheck = await checkUsageStatus(userId, model);
+    if (usageCheck.status === "denied") {
+      return new Response(
+        JSON.stringify({ error: `Daily limit reached for ${model}.` }),
+        { status: 429 },
+      );
+    }
+
+    // 2. Fetch metadata
     let imports: string[] = [];
     let exports: string[] = [];
     let impactedBy: string[] = [];
-
     if (filePath) {
-      try {
-        const [fileRows, rippleRows] = await Promise.all([
-          prisma.$queryRaw<{ imports: string[]; exports: string[] }[]>`
-            SELECT imports, exports FROM "File"
-            WHERE path = ${filePath} AND "userId" = ${userId} LIMIT 1
-          `,
-          prisma.$queryRaw<{ path: string }[]>`
-            SELECT path FROM "File"
-            WHERE ${filePath} = ANY(imports) AND "userId" = ${userId} LIMIT 30
-          `,
-        ]);
-        if (fileRows[0]) {
-          imports = fileRows[0].imports ?? [];
-          exports = fileRows[0].exports ?? [];
-        }
-        impactedBy = rippleRows.map((r: { path: string }) => r.path);
-      } catch {
-        // DB lookup failed — proceed without metadata
+      const [fileRows, rippleRows] = await Promise.all([
+        prisma.$queryRaw<{ imports: string[]; exports: string[] }[]>`
+          SELECT imports, exports FROM "File"
+          WHERE path = ${filePath} AND "userId" = ${userId} LIMIT 1
+        `,
+        prisma.$queryRaw<{ path: string }[]>`
+          SELECT path FROM "File"
+          WHERE ${filePath} = ANY(imports) AND "userId" = ${userId} LIMIT 30
+        `,
+      ]);
+      if (fileRows[0]) {
+        imports = fileRows[0].imports ?? [];
+        exports = fileRows[0].exports ?? [];
       }
+      impactedBy = rippleRows.map((r: { path: string }) => r.path);
     }
 
-    // Build a rich structural context block
     const contextBlock = [
       `File path : ${filePath || fileName}`,
-      imports.length  ? `Imports   : ${imports.join(', ')}` : null,
-      exports.length  ? `Exports   : ${exports.join(', ')}` : null,
-      impactedBy.length ? `Depended on by: ${impactedBy.join(', ')}` : 'Depended on by: (no other file imports this one)',
-    ].filter(Boolean).join('\n');
+      imports.length ? `Imports   : ${imports.join(", ")}` : null,
+      exports.length ? `Exports   : ${exports.join(", ")}` : null,
+      impactedBy.length
+        ? `Depended on by: ${impactedBy.join(", ")}`
+        : "Depended on by: (no other file imports this one)",
+    ]
+      .filter(Boolean)
+      .join("\n");
 
-    const codeBlock = codeSnippet?.trim()
-      ? `\`\`\`\n${codeSnippet}\n\`\`\``
-      : '(source code not available — analyse from imports/exports/path metadata only)';
+    const prompt = `${contextBlock}\n\n\`\`\`\n${codeSnippet}\n\`\`\``;
 
-    const prompt = `${contextBlock}\n\n${codeBlock}`;
+    // 3. Define fallback chain based on selected model
+    let chain = [groqQwen, groqLarge, groqFast];
+    if (model === "llama-3.3-70b-versatile") chain = [groqLarge, groqFast];
+    if (model === "llama-3.1-8b-instant") chain = [groqFast];
 
-    const result = streamText({
-      model: cortexModel,
-      system: SYSTEM_PROMPT,
-      prompt,
+    // 4. Stream with fallback
+    const result = await streamWithFallback(
+      {
+        system: SYSTEM_PROMPT,
+        prompt,
+        onFinish: async (event) => {
+          // Record usage for the model that actually finished
+          // The SDK provides the model name/ID in the event
+          const finishedModel =
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (event as any).modelId || (event as any).model || model;
+          await recordUsage(
+            userId,
+            String(finishedModel),
+            event.usage.totalTokens,
+          );
+        },
+      },
+      chain,
+    );
+
+    return result.toTextStreamResponse({
+      headers: {
+        "X-Usage-Status": usageCheck.status,
+      },
     });
-
-    return result.toTextStreamResponse();
   } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "An unknown error occurred";
-
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    console.error("[API Interpret] Error:", error);
+    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
     });
   }
 }

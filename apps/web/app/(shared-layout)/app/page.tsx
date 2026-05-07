@@ -62,14 +62,14 @@ function DashboardSkeleton({ header }: { header: React.ReactNode }) {
 export default function Home() {
   const { data: session, isPending: sessionLoading } = authClient.useSession();
   const { status, initializing, progress, results, currentFile, folderName, selectFolder, reset, getContent } = useIngestor();
-  const { summary, isLoading: isInterpreting, interpret } = useInterpret();
+  const { summary, isLoading: isInterpreting, interpret, selectedModel, setSelectedModel, rateLimitInfo } = useInterpret();
 
   const [selectedFile, setSelectedFile] = useState<FileResult | null>(null);
 
   const handleFileSelect = (file: FileResult) => {
     setSelectedFile(file);
     const content = getContent(file.path);
-    interpret(file.name, content || file.summary || '', file.path, file.logicSummary);
+    interpret(file.name, content || file.summary || '', file.path, file.logicSummary, selectedModel);
   };
 
   const header = (
@@ -102,7 +102,7 @@ export default function Home() {
       <div className="flex h-screen flex-col bg-background text-foreground">
         {header}
         <div className="flex flex-1 items-center justify-center">
-          <span className="animate-pulse font-mono text-xs text-cx-text-3">authenticating...</span>
+          <span className="animate-pulse font-mono text-xs text-cx-text-3">authenticating....</span>
         </div>
       </div>
     );
@@ -165,6 +165,9 @@ export default function Home() {
               code={selectedFile ? getContent(selectedFile.path) : ''}
               imports={selectedFile?.imports ?? []}
               exports={selectedFile?.exports ?? []}
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+              rateLimitInfo={rateLimitInfo}
             />
           </div>
         </section>

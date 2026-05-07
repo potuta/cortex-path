@@ -76,19 +76,19 @@ model Verification {
 }
 
 model File {
-  id        String                 @id @default(cuid())
-  path      String                 @unique
-  name      String
-  ext       String
-  imports   String[]
-  exports   String[]
+  id           String                 @id @default(cuid())
+  path         String                 @unique
+  name         String
+  ext          String
+  imports      String[]
+  exports      String[]
   summary      String?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  userId       String?
+  embedding    Unsupported("vector")?
+  content      String?
   logicSummary String?
-  createdAt DateTime               @default(now())
-  updatedAt DateTime               @updatedAt
-  userId    String?
-  embedding Unsupported("vector")?
-  content   String?
 
   @@index([userId])
 }
@@ -102,5 +102,17 @@ model SavedPrompt {
   updatedAt DateTime @updatedAt
   userId    String?
 
+  @@index([userId])
+}
+
+model Usage {
+  id           String   @id @default(cuid())
+  userId       String
+  model        String
+  requests     Int      @default(0)
+  tokens       Int      @default(0)
+  date         DateTime @default(now())
+
+  @@unique([userId, model, date])
   @@index([userId])
 }

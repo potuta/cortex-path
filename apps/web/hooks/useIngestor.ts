@@ -1,5 +1,6 @@
 'use client';
 
+import { notification } from '@/components/ui/notification';
 import { useState, useCallback, useRef, useEffect } from 'react';
 
 export type IngestStatus = 'idle' | 'processing' | 'done' | 'error';
@@ -14,7 +15,7 @@ export type FileResult = {
   content?: string | null;
 };
 
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 3;
 
 const CODE_EXTS = new Set([
   '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',
@@ -151,6 +152,10 @@ export function useIngestor() {
       // Cache content for interpret-on-click
       contentCache.current = new Map(files.map((f) => [f.path, f.content]));
 
+      // Wipe the previous project's DB rows so the map doesn't show ghost nodes
+      // setResults([]);
+      // await fetch('/api/files', { method: 'DELETE' });
+
       const batches = chunk(files, BATCH_SIZE);
       setProgress({ current: 0, total: files.length });
       setStatus('processing');
@@ -198,10 +203,14 @@ export function useIngestor() {
     }
   }, []);
 
-  const reset = useCallback(() => {
+  const reset = useCallback(async () => {
     setStatus('idle');
     setProgress({ current: 0, total: 0 });
     setResults([]);
+
+    const res = await fetch('/api/files', { method: 'DELETE' });
+    if (!res.ok) return notification({type: "error", message: "Failed to reset/delete project"})
+    
     setCurrentFile('');
     setFolderName('');
     contentCache.current.clear();
