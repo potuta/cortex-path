@@ -67,7 +67,7 @@ Cortex-Path was built to solve that problem by helping developers understand an 
 Built during the CodeKada 2026 Hackathon by:
 
 * [**JasDevPh**](https://github.com/JasDevPH) — AI integration, backend development, frontend development
-* [**LesserDev**](https://github.com/potuta) — authentication, visualization engine, backend development, frontend development
+* [**LesserDev**](https://github.com/potuta) — authentication, visualization engine & map integration, backend development, frontend development
 * [**PakerAsakura**](https://github.com/PakerAsakura) — mobile development
 * [**Johnrobot2003**](https://github.com/Johnrobot2003) — project file explorer integration, frontend development
 
