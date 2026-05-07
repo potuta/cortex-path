@@ -58,6 +58,7 @@ Cortex-Path was built to solve that problem by helping developers understand an 
 ### AI
 
 * Llama 3.3 70B
+* Groq
 
 ---
 
