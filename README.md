@@ -1,6 +1,8 @@
 # Cortex-Path
 
-AI-powered codebase understanding and visualization platform built during the CodeKada 2026 Hackathon.
+🏅 Top 4 Finalist - [CodeKada 2026 Hackathon](https://fb.watch/G_KPsihySq/)
+
+Cortex-Path is an AI-powered codebase understanding and visualization platform built in 6 days for the CodeKada 2026 Hackathon.
 
 ## The Problem
 
@@ -66,8 +68,8 @@ Cortex-Path was built to solve that problem by helping developers understand an 
 
 Built during the CodeKada 2026 Hackathon by:
 
-* [**JasDevPh**](https://github.com/JasDevPH) — AI integration, backend development, frontend development
 * [**LesserDev**](https://github.com/potuta) — authentication, visualization engine & map integration, backend development, frontend development
+* [**JasDevPh**](https://github.com/JasDevPH) — AI integration, backend development, frontend development
 * [**PakerAsakura**](https://github.com/PakerAsakura) — mobile development
 * [**Johnrobot2003**](https://github.com/Johnrobot2003) — project file explorer integration, frontend development
 
